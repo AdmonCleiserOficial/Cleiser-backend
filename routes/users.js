@@ -13,16 +13,10 @@ router.get('/', function (req, res) {
 // Register creando objeto dentro del backend trayendo el objeto creado en mongo desde
 // new user userschema
 router.post('/register', (req, res, next) => {
-  let newUser = new User({
-    name: req.body.name,
-    Email: req.body.Email,
-    username: req.body.username,
-    password: req.body.password,
-    delfinquest: req.body.delfinquest,
-    tenquest: req.body.tenquest,
-    language: req.body.language
+  const newUser = new User({   
+    Email: req.body.Email,    
+    password: req.body.password    
   });
-
   User.addUser(newUser, (err, user) => {
     if (err) {
       res.json({
@@ -33,24 +27,20 @@ router.post('/register', (req, res, next) => {
       res.json({
         success: true,
         msg: 'Usuario Registrado',
-        a:newUser.password
-        
-        
-        
+        a:newUser.password      
     });   
     }
   });
 });
-
 // Authenticate
 router.post('/authenticate', (req, res, next) => {
-  const username = req.body.username;
+  const email = req.body.Email;
   const password = req.body.password;
   console.log('///');
   console.log(username);
   console.log(password);
 
-  User.getUserByUsername(username, (err, user) => {
+  User.getUserByUsername(email, (err, user) => {
     if (err) throw err;
     console.log("");
     console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
