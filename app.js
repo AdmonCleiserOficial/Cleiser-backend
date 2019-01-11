@@ -5,15 +5,13 @@ const cors = require('cors');
 const passport = require('passport');
 const mongoose = require('mongoose');
 const config = require('./config/database');
+
+const ENV_VARS = require('./config/env_vars')
+
 const app = express();
-// Connect To Database
-//mongoose.connect(config.database); OJo activar esto cualquier cosa
 
-
-//remote database
-let urlMOngo = 'mongodb://cristiantorresf:overcome19@ds215370.mlab.com:15370/cleisser';
-let mongoDB= process.env.MONGODB_URI || urlMOngo;
-mongoose.connect(mongoDB);
+// connect to database
+mongoose.connect(ENV_VARS.mongodb_uri);
 mongoose.Promise = global.Promise;
 
 // On Connection
@@ -25,8 +23,6 @@ mongoose.connection.on('connected', () => {
 mongoose.connection.on('error', (err) => {
   console.log('Database error: '+err);
 });
-
-
 
 const users = require('./routes/users');
 
