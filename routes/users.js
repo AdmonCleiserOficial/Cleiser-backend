@@ -13,10 +13,20 @@ router.get('/', function (req, res) {
 // Register creando objeto dentro del backend trayendo el objeto creado en mongo desde
 // new user userschema
 router.post('/register', (req, res, next) => {
+  console.log(req.body)
   const newUser = new User({   
-    Email: req.body.Email,    
+    email: req.body.email,    
     password: req.body.password    
   });
+
+  newUser.save((err) => {
+    console.log(err)
+    if (err) return res.json({success: false, message: "", error: err})
+
+    console.log("toweb", newUser.toWeb())
+    return res.json({success: true, message: "Successfully created new user", user: newUser.toWeb(), token: newUser.getJWT()}) 
+  })
+    /*
   User.addUser(newUser, (err, user) => {
     if (err) {
       res.json({
@@ -31,7 +41,14 @@ router.post('/register', (req, res, next) => {
     });   
     }
   });
+  */
 });
+
+router.post('/login', passport.authenticate('local'), (req, res) => {
+  res.json({success: true, user: req.user.toWeb(), token: req.user.getJWT()})
+})
+
+
 // Authenticate
 router.post('/authenticate', (req, res, next) => {
   const email = req.body.Email;

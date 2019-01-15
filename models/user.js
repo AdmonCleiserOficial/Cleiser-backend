@@ -1,50 +1,57 @@
 const mongoose = require("mongoose");
+const jwt = require('jsonwebtoken');
 const bcrypt = require("bcryptjs");
+
+const ENV_VARS = require('../config/env_vars');
 const config = require("../config/database");
 
-const hashe='';
+const Schema = mongoose.Schema
+const Types = Schema.Types
 
 // User Schema
-const UserSchema = mongoose.Schema({
-  Email: {
-    type: String,
-    required: true
-  },
-  password: {
-    type: String,
-    required: true
-  }
+const UserSchema = new Schema({
+  email: { type: String, required: true },
+  password: { type: String, required: true },
+}, {timestamps: true});
+
+UserSchema.pre('save', function (next) {
+  var user = this;
+
+  // only hash the password if it has been modified (or is new)
+  if (!user.isModified('password') || !user.isNew) return next();
+    
+  bcrypt.genSalt(10, (err, salt) => {
+    if (err) throw err;
+    bcrypt.hash(user.password, salt, (error, hash) => {
+      if (error) throw error;
+      user.password = hash
+      next();
+    })
+  })
 });
 
-const User = (module.exports = mongoose.model("User", UserSchema));
-
-module.exports.getUserById = function(id, callback) {
-  User.findById(id, callback);
-};
-
-module.exports.getUserByUsername = function(username, callback) {
-  const query = {
-    Email: username
-  };
-  User.findOne(query, callback);
-};
-module.exports.addUser = function(newUser, callback) {
-  bcrypt.genSalt(10, (err, salt) => {
-    bcrypt.hash(newUser.password, salt, (err, hash) => {
-      if (err) throw err;
-      newUser.password = hash;
-      newUser.save(callback);
-    });
-  });
-};
-module.exports.comparePassword = function(candidatePassword, hash, callback) {
-  console.log("Esta es la password => " + candidatePassword);
-  console.log("contraseña Encriptada => " + hash);  
-  bcrypt.compare(candidatePassword, hash, (err, isMatch) => {
+UserSchema.methods.comparePassword = function(candidatePassword, callback) {
+  bcrypt.compare(candidatePassword, this.password, (err, isMatch) => {
     if (err) throw err;
-    callback(null, isMatch);
-    module.exports.hashe = hashe;
+    callback(isMatch)
   });
 };
 
+UserSchema.methods.getJWT = function () {
+    let expiration_time = parseInt(ENV_VARS.jwt_expiration);
+    return 'Bearer ' + jwt.sign({user_id: this.id}, ENV_VARS.jwt_encryption, {expiresIn: expiration_time});
+}
 
+UserSchema.methods.toWeb = function () {
+    let json = this.toJSON();
+    let userData = {};
+
+    if (json.email) userData.email = json.email;
+    //if (json.phone) userData.phone = json.phone;
+    //if (json.first_name) userData.first_name = json.first_name;
+    //if (json.last_name) userData.last_name = json.last_name;
+
+    return userData;
+}
+
+module.exports = mongoose.model('User', UserSchema)
