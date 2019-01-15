@@ -1,8 +1,9 @@
 const mongoose = require("mongoose");
 const jwt = require('jsonwebtoken');
 const bcrypt = require("bcryptjs");
+const { createTransport } = require('nodemailer');
 
-const ENV_VARS = require('../config/env_vars');
+const ENV_VARS = require('../env_vars');
 const config = require("../config/database");
 
 const Schema = mongoose.Schema
@@ -15,7 +16,7 @@ const UserSchema = new Schema({
 }, {timestamps: true});
 
 UserSchema.pre('save', function (next) {
-  var user = this;
+  let user = this;
 
   // only hash the password if it has been modified (or is new)
   if (!user.isModified('password') || !user.isNew) return next();
@@ -52,6 +53,34 @@ UserSchema.methods.toWeb = function () {
     //if (json.last_name) userData.last_name = json.last_name;
 
     return userData;
+}
+
+UserSchema.methods.requestPasswordUpdate = async function(res) {
+  createTransport({
+    auth: {
+      user: '----',
+      pass: '----'
+    },
+    service: 'Gmail'
+  })
+  .sendMail({
+    from: '---',
+    to: this.email
+  }, (err, info) => {
+    if (err) Promise.reject({
+      message: err
+    })
+    else res.json(info);
+  })
+}
+
+UserSchema.methods.updatePassword = async function(password, callback) {
+  bcrypt.genSalt(10, (err, salt) => {
+    bcrypt.hash(password, salt, (err, hash) => {
+      if (err) callback(err, null);
+      else callback(false, this);
+    })
+  });
 }
 
 module.exports = mongoose.model('User', UserSchema)
