@@ -14,6 +14,10 @@ const MessageSchema = new Schema({
     texts: {
        type: [Schema.Types.ObjectId],
        ref: 'Text'
+    },
+    isRead: {
+        type: Boolean,
+        default: false
     }
 });
 

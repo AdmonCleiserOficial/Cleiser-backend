@@ -26,4 +26,31 @@ router.post('/new', passport.authenticate('jwt', {
         .catch(err => res.send(err));
 });
 
+router.get('/messages', passport.authenticate('jwt', {
+    session: false
+}), (req, res, next) => {
+    Message.paginate({
+        recepient: req.query.user
+    }, {
+        page: req.query.page, limit: 15
+    }, (err, result) => {
+        if (err) res.send(err)
+        else res.json(result);
+    });
+});
+
+router.get('/message', passport.authenticate('jwt', {
+    session: false
+}), (req, res, next) => {
+    await Message.findById(req.query.id, (err1, m) => {
+        await Text.findById(m.texts[m.texts.length - 1], (err2, t) => {
+            if (t.by !== req.query.user) await Message.findOneAndUpdate({_id: m._id}, {isRead: true}, (err3, doc, r) => {
+                if (err) res.json(err)
+                else res.json(r);
+            });
+            else res.json(m);
+        });
+    });
+});
+
 module.exports = router;
