@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const jwt = require('jsonwebtoken');
 const bcrypt = require("bcryptjs");
 const { createTransport } = require('nodemailer');
+const paginate = require('mongoose-paginate');
 
 const ENV_VARS = require('../env_vars');
 const config = require("../config/database");
@@ -13,6 +14,9 @@ const Types = Schema.Types
 const UserSchema = new Schema({
   email: { type: String, required: true },
   password: { type: String, required: true },
+  receivedMessages: {type: [Types.ObjectId], ref: 'Message', childPath: 'recepient'},
+  sentMessages: {type: [Types.ObjectId], ref: 'Message', childPath: 'author'},
+  token: String
 }, {timestamps: true});
 
 UserSchema.pre('save', function (next) {
@@ -38,16 +42,26 @@ UserSchema.methods.comparePassword = function(candidatePassword, callback) {
   });
 };
 
-UserSchema.methods.getJWT = function () {
-    let expiration_time = parseInt(ENV_VARS.jwt_expiration);
-    return 'Bearer ' + jwt.sign({user_id: this.id}, ENV_VARS.jwt_encryption, {expiresIn: expiration_time});
+UserSchema.methods.getJWT = function() {
+
+    return this.token;
 }
 
-UserSchema.methods.toWeb = function () {
+UserSchema.methods.generateJWToken = function() {
+  let user = this;
+  user.token = jwt.sign({
+    user_id: user._id
+  }, config.secret, {
+    expiresIn: '7d'
+  });
+}
+
+UserSchema.methods.toWeb = function() {
     let json = this.toJSON();
     let userData = {};
 
     if (json.email) userData.email = json.email;
+    //if (json.token) userData.token = json.token;
     //if (json.phone) userData.phone = json.phone;
     //if (json.first_name) userData.first_name = json.first_name;
     //if (json.last_name) userData.last_name = json.last_name;
@@ -77,10 +91,12 @@ UserSchema.methods.requestPasswordUpdate = async function(res) {
 UserSchema.methods.updatePassword = async function(password, callback) {
   bcrypt.genSalt(10, (err, salt) => {
     bcrypt.hash(password, salt, (err, hash) => {
-      if (err) callback(err, null);
-      else callback(false, this);
+      if (err) callback(err, null, null);
+      else callback(false, this, hash);
     })
   });
 }
+
+UserSchema.plugin(paginate);
 
 module.exports = mongoose.model('User', UserSchema)

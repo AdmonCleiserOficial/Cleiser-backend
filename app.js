@@ -6,7 +6,7 @@ const passport = require('passport');
 const mongoose = require('mongoose');
 const config = require('./config/database');
 
-const ENV_VARS = require('./config/env_vars')
+const ENV_VARS = require('./env_vars')
 
 const app = express();
 

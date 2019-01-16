@@ -9,7 +9,7 @@ module.exports = function (passport) {
   opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
   opts.secretOrKey = config.secret;
   passport.use(new JwtStrategy(opts, (jwt_payload, done) => {
-    User.getUserById(jwt_payload._doc._id, (err, user) => {
+    User.findById(jwt_payload.user_id, (err, user) => {
       if (err) {
         return done(err, false);
       }
@@ -26,7 +26,7 @@ module.exports = function (passport) {
     {usernameField: 'email'},
     function(email, password, done) {
       User.findOne({ email }, function(err, user) {
-        if (err) { return done(err); }
+        if (err) { return done(err, false); }
         if (!user) {
           return done(null, false, { message: 'Incorrect username.' });
         }
@@ -41,12 +41,12 @@ module.exports = function (passport) {
     }
   ));
 
-  passport.serializeUser(function(user, done) {
-    done(null, user.id);
+  passport.serializeUser((user, done) => {
+    done(null, user._id);
   });
   
-  passport.deserializeUser(function(id, done) {
-    UserModel.findById(id, function(err, user) {
+  passport.deserializeUser((id, done) => {
+    UserModel.findById(id, (err, user) => {
       done(err, user);
     });
   });

@@ -4,6 +4,7 @@ const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const config = require('../config/database');
 const User = require('../models/user');
+const helpers = require('../config/helpers');
 //testing server
 router.get('/', function (req, res) {
   res.send('Se ha conectado al servidor satisfactoriamente');
@@ -18,6 +19,8 @@ router.post('/register', (req, res, next) => {
     email: req.body.email,    
     password: req.body.password    
   });
+
+  newUser.generateJWToken();
 
   newUser.save((err) => {
     console.log(err)
@@ -44,19 +47,20 @@ router.post('/register', (req, res, next) => {
   */
 });
 
-router.post('/login', passport.authenticate('local'), (req, res) => {
-  res.json({success: true, user: req.user.toWeb(), token: req.user.getJWT()})
-})
+router.post('/login', helpers.extractTokenFromRequest, (req, res) => {
+  res.json({success: true, user: req.user.toWeb(), token: req.user.getJWT()});
+});
 
 
 // Authenticate
 router.post('/authenticate', (req, res, next) => {
-  const email = req.body.Email;
+  const email = req.body.email;
   const password = req.body.password;
-  console.log('///');
-  console.log(username);
-  console.log(password);
+  //console.log('///');
+  //console.log(username);
+  //console.log(password);
 
+  /*
   User.getUserByUsername(email, (err, user) => {
     if (err) throw err;
     console.log("");
@@ -98,6 +102,28 @@ router.post('/authenticate', (req, res, next) => {
         });
       }
     });
+  });*/
+
+  User.findOne({email: email}, (err, user) => {
+    if (user) {
+      user.comparePassword(password, (isMatch) => {
+        if (!isMatch) res.json({
+          success: false, 
+          message: 'Password incorrect'
+        })
+        else {
+          user.generateJWToken();
+          user.save();
+          res.json(user);
+        }
+      });
+    }
+    else {
+      res.status(404).json({
+        success: false,
+        message: 'User not found'
+      })
+    }
   });
 });
 

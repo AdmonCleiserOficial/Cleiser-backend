@@ -15,6 +15,7 @@
     "express": "*",
     "jsonwebtoken": "*",
     "mongoose": "*",
+    "mongoose-paginate": "^5.0.3",
     "nodemailer": "^5.1.1",
     "passport": "*",
     "passport-jwt": "*",
