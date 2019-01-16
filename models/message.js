@@ -17,7 +17,7 @@ const MessageSchema = new Schema({
     }
 });
 
-MessageSchema.methods.create = async function(text) {
+MessageSchema.methods.new = async function(text) {
     let message = this;
     message.texts.push(text);
 

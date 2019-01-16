@@ -21,7 +21,7 @@ const TextSchema = new Schema({
     }
 });
 
-TextSchema.methods.create = async function(message) {
+TextSchema.methods.new = async function(message) {
     let text = this;
     text.message = message;
     
