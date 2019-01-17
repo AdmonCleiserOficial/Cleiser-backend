@@ -24,6 +24,7 @@ const MessageSchema = new Schema({
 MessageSchema.methods.new = async function(text) {
     let message = this;
     message.texts.push(text);
+    message.isRead = false;
 
     return message.save()
         .then(m => {
