@@ -11,10 +11,12 @@ const MessageSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User'
     },
-    texts: {
-       type: [Schema.Types.ObjectId],
-       ref: 'Text'
-    },
+    texts: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'Text'
+         }
+    ],
     isRead: {
         type: Boolean,
         default: false

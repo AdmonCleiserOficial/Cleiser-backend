@@ -14,8 +14,8 @@ const Types = Schema.Types
 const UserSchema = new Schema({
   email: { type: String, required: true },
   password: { type: String, required: true },
-  receivedMessages: {type: [Types.ObjectId], ref: 'Message', childPath: 'recepient'},
-  sentMessages: {type: [Types.ObjectId], ref: 'Message', childPath: 'author'},
+  receivedMessages: [{ type: Types.ObjectId, ref: 'Message', childPath: 'recepient' }],
+  sentMessages: [{ type: Types.ObjectId, ref: 'Message', childPath: 'author' }],
   token: String
 }, {timestamps: true});
 
