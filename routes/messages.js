@@ -86,4 +86,13 @@ router.post('/text', passport.authenticate('jwt', {
     });
 });
 
+router.delete('/message', passport.authenticate('jwt', {
+    session: false
+}), (req, res, next) => {
+    Message.findByIdAndDelete(req.query.id, (err, doc) => {
+        if (err) res.send(err);
+        else console.log('Deleted data: ', doc);
+    });
+});
+
 module.exports = router;
