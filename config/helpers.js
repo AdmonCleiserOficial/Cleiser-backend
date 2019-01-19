@@ -4,7 +4,7 @@ module.exports.extractTokenFromRequest = function (req, res, next) {
     let headers = req.headers;
     let token = headers.authorization.split(' ')[1];
 
-    User.findOne({
+    if (token.trim().length > 0) User.findOne({
         token: token
     }, (err, user) => {
         if (user) {
