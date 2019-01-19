@@ -16,7 +16,9 @@ const UserSchema = new Schema({
   password: { type: String, required: true },
   receivedMessages: [{ type: Types.ObjectId, ref: 'Message', childPath: 'recepient' }],
   sentMessages: [{ type: Types.ObjectId, ref: 'Message', childPath: 'author' }],
-  token: String
+  token: String,
+  isOnline: { type: Boolean, default: true},
+  settings: { type: Types.ObjectId, ref: 'Setting'}
 }, {timestamps: true});
 
 UserSchema.pre('save', function (next) {
@@ -95,6 +97,16 @@ UserSchema.methods.updatePassword = async function(password, callback) {
       else callback(false, this, hash);
     })
   });
+}
+
+UserSchema.methods.logout = async function(callback) {
+  let user = this;
+
+  user.isOnline = false;
+  user.token = '';
+
+  return user.save()
+    .then(i => callback(i));
 }
 
 UserSchema.plugin(paginate);

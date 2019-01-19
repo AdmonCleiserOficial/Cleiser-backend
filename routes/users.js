@@ -4,6 +4,7 @@ const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const config = require('../config/database');
 const User = require('../models/user');
+const Settings = require('../models/settings');
 const helpers = require('../config/helpers');
 //testing server
 router.get('/', function (req, res) {
@@ -131,9 +132,34 @@ router.post('/authenticate', (req, res, next) => {
 router.get('/profile', passport.authenticate('jwt', {
   session: false
 }), (req, res, next) => {
-  res.json({
-    user: req.user
+  User.findById(req.query.id, (err, doc) => {
+    if (err) res.send(err);
+    else User.populate(doc, {
+      path: 'settings'
+    }, (err2, populated) => {
+      if (err2) res.send(err2);
+      else res.json(populated);
+    });
   });
+});
+
+router.get('/setting', passport.authenticate('jwt', {
+  session: false
+}), (req, res, next) => {
+  Settings.create({
+    language: req.query.language ? req.query.language : 'en',
+    showOffline: req.query.showOffline ? req.query.showOffline : false,
+    user: req.query.user
+  })
+  .then(s => {
+    User.findByIdAndUpdate(req.query.user, {
+      settings: s._id
+    }, (err, doc) => {
+      if (err) res.send(err);
+      else res.json(doc);
+    });
+  })
+  .catch(err => res.send(err));
 });
 
 module.exports = router;
