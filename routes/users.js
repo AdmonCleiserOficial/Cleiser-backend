@@ -146,20 +146,44 @@ router.get('/profile', passport.authenticate('jwt', {
 router.get('/setting', passport.authenticate('jwt', {
   session: false
 }), (req, res, next) => {
-  Settings.create({
-    language: req.query.language ? req.query.language : 'en',
-    showOffline: req.query.showOffline ? req.query.showOffline : false,
-    user: req.query.user
-  })
-  .then(s => {
-    User.findByIdAndUpdate(req.query.user, {
-      settings: s._id
-    }, (err, doc) => {
-      if (err) res.send(err);
-      else res.json(doc);
+  Settings.findById(req.query.id, (err, setting) => {
+    if (err) res.send(err);
+    if(!setting) Settings.create({
+        language: req.query.language ? req.query.language : 'en',
+        showOffline: req.query.showOffline ? req.query.showOffline : false,
+        user: req.query.user
+    })
+    .then(s => {
+      User.findByIdAndUpdate(req.query.user, {
+        settings: s._id
+      }, (error, doc) => {
+        if (error) res.send(error);
+        else res.json(doc);
+      });
+    })
+    .catch(error => res.send(error));
+    else Settings.findOneAndUpdate({
+      _id: req.query.id
+    }, {
+      language: req.query.language ? req.query.language : setting.language,
+      showOffline: req.query.showOffline ? req.query.showOffline : setting.showOffline
+    }, (error, doc, response) => {
+      if (error) res.send(error);
+      else console.log('Updated settings', doc);
     });
-  })
-  .catch(err => res.send(err));
+  });
+});
+
+router.get('/logout', passport.authenticate('jwt', {
+  session: false
+}), (req, res, next) => {
+  User.findById(req.query.id, (err, user) => {
+    if (err) res.send(err);
+    else user.logout((u) => {
+      res.json(u);
+    })
+    .catch(ue => res.send(ue));
+  });
 });
 
 module.exports = router;
