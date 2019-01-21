@@ -48,8 +48,8 @@ router.post('/register', (req, res, next) => {
   */
 });
 
-router.post('/login', helpers.extractTokenFromRequest, (req, res) => {
-  res.json({success: true, user: req.user.toWeb(), token: req.user.getJWT()});
+router.get('/login', helpers.extractTokenFromRequest, (req, res) => {
+  res.status(200).json({success: true, user: req.user.toWeb(), token: req.user.getJWT()});
 });
 
 
@@ -108,7 +108,7 @@ router.post('/authenticate', (req, res, next) => {
   User.findOne({email: email}, (err, user) => {
     if (user) {
       user.comparePassword(password, (isMatch) => {
-        if (!isMatch) res.json({
+        if (!isMatch) res.status(500).json({
           success: false, 
           message: 'Password incorrect'
         })

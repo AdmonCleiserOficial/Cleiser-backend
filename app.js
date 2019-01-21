@@ -53,9 +53,13 @@ app.get('/', (req, res) => {
   res.send('Invalid Endpoint');
 });
 
+app.set('env', 'test');
+
 // Start Server
-app.listen(app.get('port'), () => {
-  console.log('Server started on port '+app.get('port'));
-});
+if (app.get('env') !== 'test') {
+  app.listen(app.get('port'), () => {
+    console.log('Server started on port '+app.get('port'));
+  });
+}
 
 module.exports = app;
