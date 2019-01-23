@@ -13,5 +13,3 @@ npm start
 ng serve
 
 // Visit localhost:4200 to see angular app
-
-// To run tests, change app.set('env', 'development') to app.set('env', 'test') and then run "npm test"

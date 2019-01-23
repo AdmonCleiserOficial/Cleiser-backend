@@ -53,7 +53,7 @@ app.get('/', (req, res) => {
   res.send('Invalid Endpoint');
 });
 
-app.set('env', 'development');
+app.set('env', 'test');
 
 // Start Server
 if (app.get('env') !== 'test') {
